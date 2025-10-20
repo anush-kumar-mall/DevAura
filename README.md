@@ -84,8 +84,8 @@ Think of it as a browser-based VS Code that supports **multi-user live coding**,
 **Anush Kumar Mall**  
 CSE Student | Full Stack Developer | Builder at Heart  
 
-- **GitHub:** [https://github.com/anush-kumar-mall](https://github.com/anush-kumar-mall)  
-- **LinkedIn:** [[your-linkedin-link](https://www.linkedin.com/in/anush-kumar-mall?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app)]  
+- **GitHub:** [**GitHub**](https://github.com/anush-kumar-mall)  
+- **LinkedIn:** [[**LinkedIn**](https://www.linkedin.com/in/anush-kumar-mall?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app)]  
 
 ---
 
