@@ -1,0 +1,10 @@
+{
+  "name": "devaura-root",
+  "private": true,
+  "scripts": {
+    "start": "concurrently -n \"CLIENT,SERVER\" -c \"magentaBright,yellowBright\" \"npm run dev --prefix client\" \"npm run dev --prefix server\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.0"
+  }
+}
