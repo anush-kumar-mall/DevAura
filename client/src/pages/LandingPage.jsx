@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 import AuthModal from '../components/AuthModal';
-import { useUsageTracking } from '../hooks/useUsageTracking';
+import { useUsageTracking } from '../hooks/Editor/useUsageTracking';
 
 import Navbar from '../components/LandingPage/Navbar';
 import HeroSection from '../components/LandingPage/HeroSection';

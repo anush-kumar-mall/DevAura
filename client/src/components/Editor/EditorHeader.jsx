@@ -64,13 +64,13 @@ const EditorHeader = ({
           </div>
         ) : (
           <div className="flex items-center gap-2">
-            {!isLimitReached && (
+            {/* {!isLimitReached && (
               <div className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20">
                 <span className="text-xs text-purple-300 font-medium">
                   {3 - usageCount} runs left
                 </span>
               </div>
-            )}
+            )} */}
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}

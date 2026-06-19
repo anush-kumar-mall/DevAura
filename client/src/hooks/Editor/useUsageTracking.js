@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-const USAGE_LIMIT = 3;
+const USAGE_LIMIT = Number.MAX_SAFE_INTEGER;
 const USAGE_KEY = 'codeunity_usage_count';
 const USER_KEY = 'codeunity_user';
 

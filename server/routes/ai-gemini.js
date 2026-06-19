@@ -351,4 +351,8 @@ router.get('/status', async (req, res) => {
   }
 });
 
+
+console.log("GEMINI KEY EXISTS:", !!process.env.GOOGLE_AI_API_KEY);
+console.log("KEY START:", process.env.GOOGLE_AI_API_KEY?.slice(0, 10));
+
 module.exports = router;

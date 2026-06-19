@@ -125,5 +125,5 @@ print(add(5, 3))
 
 export const getTemplateForFile = (fileName) => {
   const extension = fileName.split('.').pop().toLowerCase();
-  return codeTemplates[extension] || '// Start typing...';
+  return codeTemplates[extension] || '';
 };

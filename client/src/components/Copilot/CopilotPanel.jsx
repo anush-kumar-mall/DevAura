@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FaRobot, FaPaperPlane, FaSpinner, FaBug, FaCode, FaMagic, FaDownload, FaCopy, FaTrash, FaFileExport } from 'react-icons/fa';
 import axios from 'axios';
-import { useChatPersistence } from '../../hooks/useChatPersistence';
+import { useChatPersistence } from '../../hooks/CoPilot/useChatPersistence';
 
 const BACKEND_URL = import.meta.env.PROD 
   ? 'https://s65-nishat-capstone-codeunity-swbt.onrender.com'
