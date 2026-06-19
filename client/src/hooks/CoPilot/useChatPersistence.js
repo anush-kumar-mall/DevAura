@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 
 const BACKEND_URL = import.meta.env.PROD 
-  ? 'https://s65-nishat-capstone-codeunity-swbt.onrender.com'
+  ? 'https://devaura-3l4q.onrender.com'
   : 'https://devaura-3l4q.onrender.com';
 
 // Generate a unique session ID for the current browser session

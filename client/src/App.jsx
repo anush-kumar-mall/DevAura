@@ -6,7 +6,7 @@ import Editor from './pages/Editor';
 import AuthCallback from './pages/AuthCallback';
 
 const BACKEND_URL = import.meta.env.PROD 
-  ? 'https://s65-nishat-capstone-codeunity-swbt.onrender.com'
+  ? 'https://devaura-3l4q.onrender.com'
   : 'https://devaura-3l4q.onrender.com';
 
 const socket = io(BACKEND_URL);

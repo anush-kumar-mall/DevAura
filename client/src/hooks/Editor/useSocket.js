@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { io } from 'socket.io-client';
 
 const BACKEND_URL = import.meta.env.PROD
-  ? 'https://s65-nishat-capstone-codeunity-swbt.onrender.com'
+  ? 'https://devaura-3l4q.onrender.com'
   : 'https://devaura-3l4q.onrender.com';
 
 export const useSocket = ({ roomId, username, activeTabRef, onFilesUpdated, onFileCreated, onFileDeleted, onFileContentChange }) => {

@@ -4,7 +4,7 @@ import _ from 'lodash';
 import { getTemplateForFile } from '../../utils/codeTemplates';
 
 const BACKEND_URL = import.meta.env.PROD
-  ? 'https://s65-nishat-capstone-codeunity-swbt.onrender.com'
+  ? 'https://devaura-3l4q.onrender.com'
   : 'https://devaura-3l4q.onrender.com';
 
 export const useFileManager = ({ roomId, socketRef }) => {
