@@ -22,7 +22,7 @@ passport.use(
     {
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: process.env.GOOGLE_CALLBACK_URL || 'http://localhost:8080/api/auth/google/callback'
+      callbackURL: process.env.GOOGLE_CALLBACK_URL || 'https://devaura-3l4q.onrender.com/api/auth/google/callback'
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
@@ -75,7 +75,7 @@ passport.use(
     {
       clientID: process.env.GITHUB_CLIENT_ID,
       clientSecret: process.env.GITHUB_CLIENT_SECRET,
-      callbackURL: process.env.GITHUB_CALLBACK_URL || 'http://localhost:8080/api/auth/github/callback'
+      callbackURL: process.env.GITHUB_CALLBACK_URL || 'https://devaura-3l4q.onrender.com/api/auth/github/callback'
     },
     async (accessToken, refreshToken, profile, done) => {
       try {

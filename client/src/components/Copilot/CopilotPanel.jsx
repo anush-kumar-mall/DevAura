@@ -5,7 +5,7 @@ import { useChatPersistence } from '../../hooks/CoPilot/useChatPersistence';
 
 const BACKEND_URL = import.meta.env.PROD 
   ? 'https://s65-nishat-capstone-codeunity-swbt.onrender.com'
-  : 'http://localhost:8080';
+  : 'https://devaura-3l4q.onrender.com';
 
 // Maximum number of chat messages to store (to prevent localStorage from getting too large)
 const MAX_CHAT_HISTORY = 100;
