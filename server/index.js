@@ -10,7 +10,7 @@ const TldrawState = require('./models/tldrawState');
 
 // Routes
 const fileRoutes = require('./routes/files.js');
-const aiRoutes = require('./routes/ai-gemini.js');
+const aiRoutes = require('./routes/ai-groq.js');
 const aiChatRoutes = require('./routes/aiChat.js');
 const emailRoutes = require('./routes/email.js');
 const authRoutes = require('./routes/auth.js');
