@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { io } from 'socket.io-client';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import Home from './pages/Home';
+import LandingPage from './pages/LandingPage';
 import Editor from './pages/Editor';
 import AuthCallback from './pages/AuthCallback';
 
@@ -22,7 +22,7 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Home />} />
+        <Route path="/" element={<LandingPage />} />
         <Route path="/editor/:roomId" element={<Editor />} />
         <Route path="/auth-callback" element={<AuthCallback />} />
       </Routes>
