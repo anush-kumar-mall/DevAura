@@ -6,7 +6,7 @@ const TESTIMONIALS = [
     name: 'Sarah Chen',
     role: 'Senior Frontend Developer',
     company: 'TechCorp',
-    quote: 'CodeUnity has revolutionized how our team collaborates. The AI assistance is incredibly helpful!',
+    quote: 'DevAura has revolutionized how our team collaborates. The AI assistance is incredibly helpful!',
   },
   {
     name: 'Marcus Rodriguez',
@@ -30,7 +30,7 @@ const TESTIMONIALS = [
     name: 'Lisa Thompson',
     role: 'Mobile Developer',
     company: 'AppStudio',
-    quote: 'CodeUnity has become an essential tool for our development workflow. Highly recommended!',
+    quote: 'DevAura has become an essential tool for our development workflow. Highly recommended!',
   },
   {
     name: 'Alex Morgan',

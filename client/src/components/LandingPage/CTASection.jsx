@@ -18,7 +18,7 @@ const CTASection = ({ onCreateRoom }) => {
             Ready to Transform Your Development Workflow?
           </h3>
           <p className="text-white/80 mb-8 leading-relaxed max-w-2xl mx-auto">
-            Join thousands of developers who have revolutionized their coding experience with CodeUnity.
+            Join thousands of developers who have revolutionized their coding experience with DevAura.
             Start collaborating smarter, coding faster, and building better software today.
           </p>
           <motion.button

@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FaLinkedin, FaGithub, FaInstagram } from 'react-icons/fa';
 import { MdEmail } from 'react-icons/md';
@@ -14,9 +15,9 @@ const PRODUCT_FEATURES = [
 ];
 
 const SOCIAL_LINKS = [
-  { icon: FaLinkedin, href: '', label: 'LinkedIn' },
+  { icon: FaLinkedin, href: 'https://www.linkedin.com/in/anush-kumar-mall/?lipi=urn%3Ali%3Apage%3Ad_flagship3_profile_view_base%3B165H6ex7Skace7wK35vt2Q%3D%3D', label: 'LinkedIn' },
   { icon: FaGithub, href: 'https://github.com/anush-kumar-mall', label: 'GitHub' },
-  { icon: FaInstagram, href: '', label: 'Instagram' },
+  { icon: FaInstagram, href: 'https://www.instagram.com/anush.mall/', label: 'Instagram' },
 ];
 
 const Footer = ({ scrollToSection, refs }) => {
@@ -137,13 +138,11 @@ const Footer = ({ scrollToSection, refs }) => {
             <div className="text-white/70 text-sm">
               © 2026 DevAura. All rights reserved. Built with ❤️ by Anush Kumar Mall.
             </div>
-            <div className="flex gap-6 text-sm">
-              {['Privacy Policy', 'Terms of Service', 'Cookie Policy'].map((item) => (
-                <a key={item} href="#" className="text-white/70 hover:text-white transition-colors">
-                  {item}
-                </a>
-              ))}
-            </div>
+            <nav className="flex flex-wrap justify-center gap-x-6 gap-y-3 text-sm" aria-label="Legal links">
+              <Link to="/privacy-policy" className="text-white/70 hover:text-white transition-colors">Privacy Policy</Link>
+              <Link to="/terms-of-service" className="text-white/70 hover:text-white transition-colors">Terms of Service</Link>
+              <Link to="/cookie-policy" className="text-white/70 hover:text-white transition-colors">Cookie Policy</Link>
+            </nav>
           </div>
         </div>
       </div>

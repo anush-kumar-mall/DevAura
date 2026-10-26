@@ -38,7 +38,7 @@ const SideBar = ({ activeTab, setActiveTab, unreadCount, onAuthRequired }) => {
         <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-lg">
           <img 
             src={codeunityLogo} 
-            alt="CodeUnity" 
+            alt="DevAura" 
             className="w-8 h-8 object-contain rounded-lg"
           />
         </div>

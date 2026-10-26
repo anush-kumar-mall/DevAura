@@ -49,7 +49,7 @@ const AuthPromptModal = ({ showAuthModal, setShowAuthModal }) => {
                   className="w-full flex items-center justify-center gap-3 p-3 rounded-lg bg-gradient-to-r from-pink-500/20 to-purple-600/20 border border-pink-500/30 text-pink-400 hover:from-pink-500/30 hover:to-purple-600/30 transition-all duration-200"
                 >
                   <FaSignOutAlt className="w-5 h-5" />
-                  <span className="text-sm font-medium">Authenticate with CodeUnity</span>
+                  <span className="text-sm font-medium">Authenticate with DevAura</span>
                 </button>
               </div>
 

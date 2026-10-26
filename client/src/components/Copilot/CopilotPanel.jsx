@@ -218,7 +218,7 @@ const CopilotPanel = ({ currentFile, code, onCodeInsert, roomId }) => {
       prompt: query,
       code: code,
       fileName: currentFile,
-      context: 'CodeUnity Editor'
+      context: 'DevAura Editor'
     });
 
     console.log('AI Response:', response.data); // Debug log

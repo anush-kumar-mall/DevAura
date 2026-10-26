@@ -136,7 +136,7 @@ const AuthModal = ({ isOpen, onClose, onAuth }) => {
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold text-white">
-                {isLogin ? 'Welcome Back!' : 'Join CodeUnity'}
+                {isLogin ? 'Welcome Back!' : 'Join DevAura'}
               </h2>
               <button
                 onClick={onClose}

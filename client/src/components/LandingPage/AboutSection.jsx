@@ -30,9 +30,9 @@ const AboutSection = ({ aboutRef }) => {
         className="relative z-10 space-y-16"
       >
         <div className="space-y-6">
-          <h2 className="text-4xl font-bold text-white">About CodeUnity</h2>
+          <h2 className="text-4xl font-bold text-white">About DevAura</h2>
           <p className="text-white/80 text-lg max-w-4xl mx-auto leading-relaxed">
-            CodeUnity is a revolutionary AI-powered collaborative coding platform that transforms how developers
+            DevAura is a revolutionary AI-powered collaborative coding platform that transforms how developers
             work together. Built for the modern era of remote development, we bridge the gap between individual
             creativity and team productivity through seamless real-time collaboration and intelligent code assistance.
           </p>

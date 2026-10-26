@@ -45,7 +45,7 @@ function MobileError() {
                 <div className="absolute inset-0 bg-gradient-to-r from-pink-500/20 to-purple-600/20 blur-xl rounded-full"></div>
                 <img 
                   src={codeunityLogo} 
-                  alt="CodeUnity" 
+                  alt="DevAura" 
                   className="relative h-16 w-auto object-contain rounded-xl"
                 />
                 <div className="relative">
@@ -73,7 +73,7 @@ function MobileError() {
                 <span className="text-white"> Experience Required</span>
               </h1>
               <p className="text-gray-300 text-lg leading-relaxed">
-                CodeUnity's collaborative features are optimized for desktop devices. 
+                DevAura's collaborative features are optimized for desktop devices. 
                 Please switch to a desktop browser to access the full editor experience.
               </p>
             </motion.div>

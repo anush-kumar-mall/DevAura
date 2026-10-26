@@ -43,7 +43,7 @@ const FeaturesSection = ({ featuresRef }) => {
         <div className="space-y-4">
           <h2 className="text-5xl font-bold text-white">Core Features</h2>
           <p className="text-white/80 text-lg max-w-2xl mx-auto">
-            Discover the powerful tools that make CodeUnity the ultimate collaborative coding platform
+            Discover the powerful tools that make DevAura the ultimate collaborative coding platform
           </p>
         </div>
 

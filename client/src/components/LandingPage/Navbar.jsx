@@ -8,7 +8,7 @@ const NAV_ITEMS = [
   { name: 'FEATURES' },
   { name: 'ABOUT' },
   { name: 'TESTIMONIALS' },
-  { name: 'CONTACT' },
+  // { name: 'CONTACT' },
 ];
 
 const Navbar = ({
@@ -43,7 +43,7 @@ const Navbar = ({
       <div className="flex justify-between items-center">
         {/* Logo */}
         <motion.div className="flex items-center gap-3" whileHover={{ scale: 1.05 }}>
-          <img src={codeunityLogo} alt="CodeUnity" className="h-10 w-auto object-contain" />
+          <img src={codeunityLogo} alt="DevAura" className="h-10 w-auto object-contain" />
           <span className="text-white font-bold text-xl tracking-tight">CODE UNITY</span>
         </motion.div>
 
