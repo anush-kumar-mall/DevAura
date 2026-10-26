@@ -557,21 +557,21 @@ router.post('/forgot-password', forgotPasswordLimiter, async (req, res) => {
     // Send OTP email with production-ready error handling
     const mailOptions = {
       from: {
-        name: 'CodeUnity',
+        name: 'DevAura',
         address: process.env.EMAIL_USER
       },
       to: email,
-      subject: 'CodeUnity - Password Reset OTP',
+      subject: 'DevAura - Password Reset OTP',
       html: `
         <div style="font-family: 'Arial', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #111827;">
           <div style="background: linear-gradient(135deg, #ec4899 0%, #be185d 100%); padding: 30px; border-radius: 10px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
-            <h1 style="color: white; margin: 0; font-size: 24px; font-weight: bold;">CodeUnity Password Reset</h1>
+            <h1 style="color: white; margin: 0; font-size: 24px; font-weight: bold;">DevAura Password Reset</h1>
           </div>
           <div style="background: #1f2937; padding: 30px; border-radius: 10px; margin-top: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); border: 1px solid #374151;">
             <h2 style="color: white; margin-bottom: 20px; font-size: 20px;">Reset Your Password</h2>
             <p style="color: #d1d5db; font-size: 16px; line-height: 1.5;">
               Hi <strong style="color: white;">${user.username}</strong>,<br><br>
-              You requested to reset your password for your CodeUnity account. Use the OTP below to verify your identity:
+              You requested to reset your password for your DevAura account. Use the OTP below to verify your identity:
             </p>
             <div style="background: #374151; padding: 20px; border-radius: 8px; text-align: center; margin: 20px 0; border: 1px solid #4b5563;">
               <h3 style="color: #ec4899; margin: 0; font-size: 32px; letter-spacing: 5px; font-family: monospace; font-weight: bold;">${otp}</h3>
@@ -582,12 +582,12 @@ router.post('/forgot-password', forgotPasswordLimiter, async (req, res) => {
             </p>
             <div style="background: #1f2937; border: 1px solid #ec4899; padding: 15px; border-radius: 5px; margin: 15px 0;">
               <p style="color: #fbbf24; font-size: 14px; margin: 0;">
-                <strong>Security Notice:</strong> Never share this OTP with anyone. CodeUnity support will never ask for your OTP.
+                <strong>Security Notice:</strong> Never share this OTP with anyone. DevAura support will never ask for your OTP.
               </p>
             </div>
           </div>
           <div style="text-align: center; margin-top: 20px; color: #6b7280; font-size: 12px;">
-            © 2025 CodeUnity. All rights reserved.
+            © 2025 DevAura. All rights reserved.
           </div>
         </div>
       `
@@ -835,15 +835,15 @@ router.post('/resend-otp', forgotPasswordLimiter, async (req, res) => {
     // Send OTP email
     const mailOptions = {
       from: {
-        name: 'CodeUnity',
+        name: 'DevAura',
         address: process.env.EMAIL_USER
       },
       to: email,
-      subject: 'CodeUnity - Password Reset OTP (Resent)',
+      subject: 'DevAura - Password Reset OTP (Resent)',
       html: `
         <div style="font-family: 'Arial', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #111827;">
           <div style="background: linear-gradient(135deg, #ec4899 0%, #be185d 100%); padding: 30px; border-radius: 10px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
-            <h1 style="color: white; margin: 0; font-size: 24px; font-weight: bold;">CodeUnity Password Reset</h1>
+            <h1 style="color: white; margin: 0; font-size: 24px; font-weight: bold;">DevAura Password Reset</h1>
           </div>
           <div style="background: #1f2937; padding: 30px; border-radius: 10px; margin-top: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); border: 1px solid #374151;">
             <h2 style="color: white; margin-bottom: 20px; font-size: 20px;">Your New OTP</h2>
@@ -859,12 +859,12 @@ router.post('/resend-otp', forgotPasswordLimiter, async (req, res) => {
             </p>
             <div style="background: #1f2937; border: 1px solid #ec4899; padding: 15px; border-radius: 5px; margin: 15px 0;">
               <p style="color: #fbbf24; font-size: 14px; margin: 0;">
-                <strong>Security Notice:</strong> Never share this OTP with anyone. CodeUnity support will never ask for your OTP.
+                <strong>Security Notice:</strong> Never share this OTP with anyone. DevAura support will never ask for your OTP.
               </p>
             </div>
           </div>
           <div style="text-align: center; margin-top: 20px; color: #6b7280; font-size: 12px;">
-            © 2025 CodeUnity. All rights reserved.
+            © 2025 DevAura. All rights reserved.
           </div>
         </div>
       `

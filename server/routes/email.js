@@ -62,7 +62,7 @@ router.post('/share-room', emailLimiter, async (req, res) => {
 
     const transporter = createTransporter();
 
-    const subject = `${senderName || 'Someone'} invited you to collaborate on CodeUnity`;
+    const subject = `${senderName || 'Someone'} invited you to collaborate on DevAura`;
     
     const htmlContent = `
       <!DOCTYPE html>
@@ -125,28 +125,28 @@ router.post('/share-room', emailLimiter, async (req, res) => {
       </head>
       <body>
         <div class="header">
-          <h1>🚀 CodeUnity Collaboration Invitation</h1>
+          <h1>🚀 DevAura Collaboration Invitation</h1>
           <p>You've been invited to join a collaborative coding session!</p>
         </div>
         
         <div class="content">
           <h2>Hi ${recipientName || 'there'}! 👋</h2>
           
-          <p><strong>${senderName || 'Someone'}</strong> has invited you to collaborate on a coding project using CodeUnity.</p>
+          <p><strong>${senderName || 'Someone'}</strong> has invited you to collaborate on a coding project using DevAura.</p>
           
           ${message ? `<p><em>"${message}"</em></p>` : ''}
           
           <div class="room-info">
             <h3>📍 How to Join:</h3>
             <p><strong>Room ID:</strong> <span class="room-id">${roomId}</span></p>
-            <p>1. Go to <a href="https://codeunity.dev" style="color: #667eea;">CodeUnity</a></p>
+            <p>1. Go to <a href="https://codeunity.dev" style="color: #667eea;">DevAura</a></p>
             <p>2. Enter the Room ID above to join the collaboration session</p>
           </div>
           
           <div style="text-align: center;">
             <p style="background: #f8f9fa; padding: 15px; border-radius: 6px; margin: 20px 0;">
               <strong>Room ID: ${roomId}</strong><br>
-              <small>Copy this ID and enter it on CodeUnity to join the session</small>
+              <small>Copy this ID and enter it on DevAura to join the session</small>
             </p>
           </div>
           
@@ -163,7 +163,7 @@ router.post('/share-room', emailLimiter, async (req, res) => {
         </div>
         
         <div class="footer">
-          <p>This invitation was sent via CodeUnity - AI-Powered Collaborative Coding Platform</p>
+          <p>This invitation was sent via DevAura - AI-Powered Collaborative Coding Platform</p>
           <p>🌐 <a href="https://codeunity.dev" style="color: #cbd5e0;">codeunity.dev</a></p>
         </div>
       </body>
@@ -171,17 +171,17 @@ router.post('/share-room', emailLimiter, async (req, res) => {
     `;
 
     const textContent = `
-${senderName || 'Someone'} invited you to collaborate on CodeUnity!
+${senderName || 'Someone'} invited you to collaborate on DevAura!
 
 Hi ${recipientName || 'there'}!
 
-${senderName || 'Someone'} has invited you to join a collaborative coding session on CodeUnity.
+${senderName || 'Someone'} has invited you to join a collaborative coding session on DevAura.
 
 ${message ? `Message: "${message}"` : ''}
 
 How to Join:
 - Room ID: ${roomId}
-- Go to CodeUnity (https://codeunity.dev)
+- Go to DevAura (https://codeunity.dev)
 - Enter the Room ID above to join the collaboration session
 
 What you can do:
@@ -191,13 +191,13 @@ What you can do:
 - Run and test code collaboratively
 - Manage files and projects together
 
-This invitation was sent via CodeUnity - AI-Powered Collaborative Coding Platform
+This invitation was sent via DevAura - AI-Powered Collaborative Coding Platform
 Visit: https://codeunity.dev
     `;
 
     const mailOptions = {
       from: {
-        name: 'CodeUnity',
+        name: 'DevAura',
         address: process.env.EMAIL_USER
       },
       to: recipientEmail,

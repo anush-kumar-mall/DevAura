@@ -208,7 +208,7 @@ app.get('/db-status', async (req, res) => {
 // Root endpoint
 app.get('/', (req, res) => {
   res.json({
-    message: 'CodeUnity API Server',
+    message: 'DevAura API Server',
     status: 'running',
     mongodb: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
   });
