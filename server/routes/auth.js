@@ -16,6 +16,12 @@ const router = express.Router();
 // Import rate limiters from middleware
 const { authLimiter, forgotPasswordLimiter } = require('../middleware/rateLimiter');
 
+const CLIENT_URL =
+  process.env.CLIENT_URL ||
+  (process.env.NODE_ENV === 'production'
+    ? 'https://dev-aura-virid.vercel.app'
+    : 'http://localhost:5173');
+
 // Passport.js Configuration
 passport.use(
   new GoogleStrategy(
@@ -899,65 +905,129 @@ router.post('/resend-otp', forgotPasswordLimiter, async (req, res) => {
 // ==================== OAuth Routes ====================
 
 // Google OAuth
-router.get('/google', passport.authenticate('google', {
-  scope: ['profile', 'email']
-}));
+router.get(
+  '/google',
+  passport.authenticate('google', {
+    scope: ['profile', 'email']
+  })
+);
 
-router.get('/google/callback', passport.authenticate('google', { session: false }), (req, res) => {
-  try {
-    if (!req.user) {
-      return res.redirect(`${process.env.CLIENT_URL || 'http://localhost:5173'}?error=auth_failed`);
+router.get(
+  '/google/callback',
+  passport.authenticate('google', { session: false }),
+  (req, res) => {
+    try {
+      if (!req.user) {
+        return res.redirect(`${CLIENT_URL}/?error=auth_failed`);
+      }
+
+      const token = jwt.sign(
+        {
+          userId: req.user._id,
+          username: req.user.username
+        },
+        process.env.JWT_SECRET,
+        { expiresIn: '30d' }
+      );
+
+      // Update last active
+      req.user.usage.lastActiveAt = new Date();
+
+      req.user.save().catch((err) => {
+        console.error(
+          'Error updating user last active:',
+          err
+        );
+      });
+
+      // Redirect to the correct frontend
+      const redirectUrl = new URL('/auth-callback', CLIENT_URL);
+
+      redirectUrl.searchParams.set('token', token);
+      redirectUrl.searchParams.set(
+        'username',
+        req.user.username
+      );
+      redirectUrl.searchParams.set(
+        'email',
+        req.user.email || ''
+      );
+
+      return res.redirect(redirectUrl.toString());
+    } catch (error) {
+      console.error(
+        '[ERROR] Google OAuth callback error:',
+        error
+      );
+
+      return res.redirect(
+        `${CLIENT_URL}/?error=server_error`
+      );
     }
-
-    // Generate JWT token
-    const token = jwt.sign(
-      { userId: req.user._id, username: req.user.username },
-      process.env.JWT_SECRET,
-      { expiresIn: '30d' }
-    );
-
-    // Update last active
-    req.user.usage.lastActiveAt = new Date();
-    req.user.save().catch(err => console.error('Error updating user last active:', err));
-
-    // Redirect to frontend with token
-    const redirectUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/auth-callback?token=${token}&username=${encodeURIComponent(req.user.username)}&email=${encodeURIComponent(req.user.email || '')}`;
-    res.redirect(redirectUrl);
-  } catch (error) {
-    console.error('[ERROR] Google OAuth callback error:', error);
-    res.redirect(`${process.env.CLIENT_URL || 'http://localhost:5173'}?error=server_error`);
   }
-});
+);
 
 // GitHub OAuth
-router.get('/github', passport.authenticate('github', {
-  scope: ['user:email', 'read:user']
-}));
+router.get(
+  '/github',
+  passport.authenticate('github', {
+    scope: ['user:email', 'read:user']
+  })
+);
 
-router.get('/github/callback', passport.authenticate('github', { session: false }), (req, res) => {
-  try {
-    if (!req.user) {
-      return res.redirect(`${process.env.CLIENT_URL || 'http://localhost:5173'}?error=auth_failed`);
+router.get(
+  '/github/callback',
+  passport.authenticate('github', { session: false }),
+  (req, res) => {
+    try {
+      if (!req.user) {
+        return res.redirect(`${CLIENT_URL}/?error=auth_failed`);
+      }
+
+      const token = jwt.sign(
+        {
+          userId: req.user._id,
+          username: req.user.username
+        },
+        process.env.JWT_SECRET,
+        { expiresIn: '30d' }
+      );
+
+      // Update last active
+      req.user.usage.lastActiveAt = new Date();
+
+      req.user.save().catch((err) => {
+        console.error(
+          'Error updating user last active:',
+          err
+        );
+      });
+
+      // Redirect to the correct frontend
+      const redirectUrl = new URL('/auth-callback', CLIENT_URL);
+
+      redirectUrl.searchParams.set('token', token);
+      redirectUrl.searchParams.set(
+        'username',
+        req.user.username
+      );
+      redirectUrl.searchParams.set(
+        'email',
+        req.user.email || ''
+      );
+
+      return res.redirect(redirectUrl.toString());
+    } catch (error) {
+      console.error(
+        '[ERROR] GitHub OAuth callback error:',
+        error
+      );
+
+      return res.redirect(
+        `${CLIENT_URL}/?error=server_error`
+      );
     }
-
-    // Generate JWT token
-    const token = jwt.sign(
-      { userId: req.user._id, username: req.user.username },
-      process.env.JWT_SECRET,
-      { expiresIn: '30d' }
-    );
-
-    // Update last active
-    req.user.usage.lastActiveAt = new Date();
-    req.user.save().catch(err => console.error('Error updating user last active:', err));
-
-    // Redirect to frontend with token
-    const redirectUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/auth-callback?token=${token}&username=${encodeURIComponent(req.user.username)}&email=${encodeURIComponent(req.user.email || '')}`;
-    res.redirect(redirectUrl);
-  } catch (error) {
-    console.error('[ERROR] GitHub OAuth callback error:', error);
-    res.redirect(`${process.env.CLIENT_URL || 'http://localhost:5173'}?error=server_error`);
   }
-});
+);
 
 module.exports = router;
