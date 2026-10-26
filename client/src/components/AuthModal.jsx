@@ -1,22 +1,34 @@
+
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaUser, FaEnvelope, FaLock, FaGoogle, FaGithub, FaTimes, FaEye, FaEyeSlash } from 'react-icons/fa';
+import {
+  FaUser,
+  FaEnvelope,
+  FaLock,
+  FaGoogle,
+  FaGithub,
+  FaTimes,
+  FaEye,
+  FaEyeSlash,
+} from 'react-icons/fa';
 import axios from 'axios';
 import ForgotPassword from './ForgotPassword';
 
-const BACKEND_URL = import.meta.env.PROD 
+const BACKEND_URL = import.meta.env.PROD
   ? 'https://devaura-3l4q.onrender.com'
-  : 'https://devaura-3l4q.onrender.com';
+  : 'http://localhost:8080';
 
 const AuthModal = ({ isOpen, onClose, onAuth }) => {
   const [isLogin, setIsLogin] = useState(true);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
+
   const [formData, setFormData] = useState({
     username: '',
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
   });
+
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -28,7 +40,7 @@ const AuthModal = ({ isOpen, onClose, onAuth }) => {
         username: '',
         email: '',
         password: '',
-        confirmPassword: ''
+        confirmPassword: '',
       });
       setErrors({});
     }
@@ -73,32 +85,45 @@ const AuthModal = ({ isOpen, onClose, onAuth }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (!validateForm()) return;
 
     setIsLoading(true);
+
     try {
-      const endpoint = isLogin ? '/api/auth/login' : '/api/auth/signup';
+      const endpoint = isLogin
+        ? '/api/auth/login'
+        : '/api/auth/signup';
+
       const response = await axios.post(`${BACKEND_URL}${endpoint}`, {
         username: formData.username,
         email: formData.email,
-        password: formData.password
+        password: formData.password,
       });
 
       if (response.data.success) {
-        // Store user data in localStorage
-        localStorage.setItem('codeunity_user', JSON.stringify(response.data.user));
-        localStorage.setItem('codeunity_token', response.data.token);
-        
-        // Reset usage tracking for authenticated users
+        localStorage.setItem(
+          'codeunity_user',
+          JSON.stringify(response.data.user)
+        );
+
+        localStorage.setItem(
+          'codeunity_token',
+          response.data.token
+        );
+
         localStorage.removeItem('codeunity_usage_count');
-        
+
         onAuth(response.data.user);
         onClose();
       }
     } catch (error) {
-      console.error('Authentication error:', error);
+      console.error('Authentication error:', error.response?.data || error);
+
       setErrors({
-        general: error.response?.data?.message || 'Authentication failed. Please try again.'
+        general:
+          error.response?.data?.message ||
+          'Authentication failed. Please try again.',
       });
     } finally {
       setIsLoading(false);
@@ -110,8 +135,14 @@ const AuthModal = ({ isOpen, onClose, onAuth }) => {
   };
 
   const inputVariants = {
-    focus: { scale: 1.02, transition: { duration: 0.2 } },
-    blur: { scale: 1, transition: { duration: 0.2 } }
+    focus: {
+      scale: 1.02,
+      transition: { duration: 0.2 },
+    },
+    blur: {
+      scale: 1,
+      transition: { duration: 0.2 },
+    },
   };
 
   if (!isOpen) return null;
@@ -138,7 +169,9 @@ const AuthModal = ({ isOpen, onClose, onAuth }) => {
               <h2 className="text-2xl font-bold text-white">
                 {isLogin ? 'Welcome Back!' : 'Join DevAura'}
               </h2>
+
               <button
+                type="button"
                 onClick={onClose}
                 className="text-gray-400 hover:text-white transition-colors p-1"
               >
@@ -146,7 +179,7 @@ const AuthModal = ({ isOpen, onClose, onAuth }) => {
               </button>
             </div>
 
-            {/* Toggle Login/Signup */}
+            {/* Login / Signup toggle */}
             <div className="flex mb-6 p-1 bg-gray-800/50 rounded-xl">
               <button
                 type="button"
@@ -159,6 +192,7 @@ const AuthModal = ({ isOpen, onClose, onAuth }) => {
               >
                 Login
               </button>
+
               <button
                 type="button"
                 onClick={() => setIsLogin(false)}
@@ -179,47 +213,67 @@ const AuthModal = ({ isOpen, onClose, onAuth }) => {
                 <label className="block text-sm font-medium text-gray-300 mb-2">
                   Username
                 </label>
+
                 <motion.div
                   variants={inputVariants}
                   whileFocus="focus"
                   className="relative"
                 >
-                  <FaUser className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <FaUser className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+
                   <input
                     type="text"
                     value={formData.username}
-                    onChange={(e) => setFormData(prev => ({ ...prev, username: e.target.value }))}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        username: e.target.value,
+                      }))
+                    }
                     className="w-full pl-10 pr-4 py-3 bg-gray-800/50 border border-gray-700/30 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500/30 focus:border-pink-500/30 transition-all duration-200"
                     placeholder="Enter your username"
                   />
                 </motion.div>
+
                 {errors.username && (
-                  <p className="mt-1 text-sm text-red-400">{errors.username}</p>
+                  <p className="mt-1 text-sm text-red-400">
+                    {errors.username}
+                  </p>
                 )}
               </div>
 
-              {/* Email (only for signup) */}
+              {/* Email */}
               {!isLogin && (
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
                     Email
                   </label>
+
                   <motion.div
                     variants={inputVariants}
                     whileFocus="focus"
                     className="relative"
                   >
-                    <FaEnvelope className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <FaEnvelope className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+
                     <input
                       type="email"
                       value={formData.email}
-                      onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          email: e.target.value,
+                        }))
+                      }
                       className="w-full pl-10 pr-4 py-3 bg-gray-800/50 border border-gray-700/30 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500/30 focus:border-pink-500/30 transition-all duration-200"
                       placeholder="Enter your email"
                     />
                   </motion.div>
+
                   {errors.email && (
-                    <p className="mt-1 text-sm text-red-400">{errors.email}</p>
+                    <p className="mt-1 text-sm text-red-400">
+                      {errors.email}
+                    </p>
                   )}
                 </div>
               )}
@@ -229,73 +283,107 @@ const AuthModal = ({ isOpen, onClose, onAuth }) => {
                 <label className="block text-sm font-medium text-gray-300 mb-2">
                   Password
                 </label>
+
                 <motion.div
                   variants={inputVariants}
                   whileFocus="focus"
                   className="relative"
                 >
-                  <FaLock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <FaLock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+
                   <input
                     type={showPassword ? 'text' : 'password'}
                     value={formData.password}
-                    onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        password: e.target.value,
+                      }))
+                    }
                     className="w-full pl-10 pr-12 py-3 bg-gray-800/50 border border-gray-700/30 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500/30 focus:border-pink-500/30 transition-all duration-200"
                     placeholder="Enter your password"
                   />
+
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
                   >
-                    {showPassword ? <FaEyeSlash className="w-4 h-4" /> : <FaEye className="w-4 h-4" />}
+                    {showPassword ? (
+                      <FaEyeSlash className="w-4 h-4" />
+                    ) : (
+                      <FaEye className="w-4 h-4" />
+                    )}
                   </button>
                 </motion.div>
+
                 {errors.password && (
-                  <p className="mt-1 text-sm text-red-400">{errors.password}</p>
+                  <p className="mt-1 text-sm text-red-400">
+                    {errors.password}
+                  </p>
                 )}
               </div>
 
-              {/* Confirm Password (only for signup) */}
+              {/* Confirm Password */}
               {!isLogin && (
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
                     Confirm Password
                   </label>
+
                   <motion.div
                     variants={inputVariants}
                     whileFocus="focus"
                     className="relative"
                   >
-                    <FaLock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <FaLock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+
                     <input
                       type={showConfirmPassword ? 'text' : 'password'}
                       value={formData.confirmPassword}
-                      onChange={(e) => setFormData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          confirmPassword: e.target.value,
+                        }))
+                      }
                       className="w-full pl-10 pr-12 py-3 bg-gray-800/50 border border-gray-700/30 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500/30 focus:border-pink-500/30 transition-all duration-200"
                       placeholder="Confirm your password"
                     />
+
                     <button
                       type="button"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+                      onClick={() =>
+                        setShowConfirmPassword(!showConfirmPassword)
+                      }
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
                     >
-                      {showConfirmPassword ? <FaEyeSlash className="w-4 h-4" /> : <FaEye className="w-4 h-4" />}
+                      {showConfirmPassword ? (
+                        <FaEyeSlash className="w-4 h-4" />
+                      ) : (
+                        <FaEye className="w-4 h-4" />
+                      )}
                     </button>
                   </motion.div>
+
                   {errors.confirmPassword && (
-                    <p className="mt-1 text-sm text-red-400">{errors.confirmPassword}</p>
+                    <p className="mt-1 text-sm text-red-400">
+                      {errors.confirmPassword}
+                    </p>
                   )}
                 </div>
               )}
 
-              {/* General Error */}
+              {/* General error */}
               {errors.general && (
                 <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
-                  <p className="text-sm text-red-400">{errors.general}</p>
+                  <p className="text-sm text-red-400">
+                    {errors.general}
+                  </p>
                 </div>
               )}
 
-              {/* Submit Button */}
+              {/* Submit button */}
               <motion.button
                 type="submit"
                 disabled={isLoading}
@@ -309,41 +397,41 @@ const AuthModal = ({ isOpen, onClose, onAuth }) => {
               >
                 {isLoading ? (
                   <div className="flex items-center justify-center gap-2">
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    <span>{isLogin ? 'Signing In...' : 'Creating Account...'}</span>
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <span>
+                      {isLogin ? 'Signing In...' : 'Creating Account...'}
+                    </span>
                   </div>
                 ) : (
                   <span>{isLogin ? 'Sign In' : 'Create Account'}</span>
                 )}
               </motion.button>
 
-              {/* Forgot Password Link */}
+              {/* Forgot password */}
               {isLogin && (
                 <div className="text-center mt-4">
                   <button
                     type="button"
-                    onClick={() => {
-                      console.log('Forgot password clicked');
-                      alert('Forgot password clicked!'); // Temporary debug
-                      setShowForgotPassword(true);
-                    }}
+                    onClick={() => setShowForgotPassword(true)}
                     className="text-sm text-pink-400 hover:text-pink-300 transition-colors underline"
                   >
                     Forgot your password?
                   </button>
-                  <p className="text-xs text-gray-500 mt-1">Debug: isLogin={isLogin.toString()}, showForgotPassword={showForgotPassword.toString()}</p>
                 </div>
               )}
             </form>
 
-            {/* OAuth Options */}
+            {/* OAuth options */}
             <div className="mt-6">
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-700/30"></div>
+                  <div className="w-full border-t border-gray-700/30" />
                 </div>
+
                 <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-gray-900 text-gray-400">Or continue with</span>
+                  <span className="px-2 bg-gray-900 text-gray-400">
+                    Or continue with
+                  </span>
                 </div>
               </div>
 
@@ -358,6 +446,7 @@ const AuthModal = ({ isOpen, onClose, onAuth }) => {
                   <FaGoogle className="w-4 h-4" />
                   <span className="text-sm">Google</span>
                 </motion.button>
+
                 <motion.button
                   type="button"
                   onClick={() => handleOAuthLogin('github')}
@@ -374,18 +463,15 @@ const AuthModal = ({ isOpen, onClose, onAuth }) => {
         </motion.div>
       </motion.div>
 
-      {/* Forgot Password Modal */}
+      {/* Forgot password modal */}
       {showForgotPassword && (
-        <>
-          {console.log('Rendering ForgotPassword component')}
-          <ForgotPassword
-            onBack={() => setShowForgotPassword(false)}
-            onSuccess={() => {
-              setShowForgotPassword(false);
-              onClose();
-            }}
-          />
-        </>
+        <ForgotPassword
+          onBack={() => setShowForgotPassword(false)}
+          onSuccess={() => {
+            setShowForgotPassword(false);
+            onClose();
+          }}
+        />
       )}
     </AnimatePresence>
   );
