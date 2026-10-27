@@ -31,6 +31,7 @@ const io = new Server(server, {
     origin: [
       'https://cunity.vercel.app',
       'https://cu-sandy.vercel.app',
+      'https://dev-aura-virid.vercel.app',
       'https://cuni.vercel.app',
       'http://localhost:5173',
     ],
@@ -60,6 +61,7 @@ app.use(
     origin: [
       'https://cunity.vercel.app',
       'https://cu-sandy.vercel.app',
+      'https://dev-aura-virid.vercel.app',
       'https://cuni.vercel.app',
       'http://localhost:5173',
     ],
