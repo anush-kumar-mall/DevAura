@@ -15,7 +15,7 @@ export const useSocket = ({ roomId, username, activeTabRef, onFilesUpdated, onFi
 
     socketRef.current = io(BACKEND_URL, {
       withCredentials: true,
-      transports: ['websocket', 'polling'],
+      transports: ['polling', 'websocket'],
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
       timeout: 20000,
