@@ -620,18 +620,30 @@ io.on('connection', (socket) => {
   });
 });
 
-// Code execution endpoint
+
 app.post('/api/execute', codeExecutionLimiter, async (req, res) => {
   try {
     const { language, code } = req.body;
 
+    if (!language || typeof code !== 'string' || !code.trim()) {
+      return res.status(400).json({
+        success: false,
+        error: 'Language and code are required',
+        output: 'Please provide valid code.',
+      });
+    }
+
     const languageMap = {
       js: 'javascript',
-      py: 'python3',
+      jsx: 'javascript',
+      javascript: 'javascript',
+      py: 'python',
+      python: 'python',
       java: 'java',
       cpp: 'cpp',
       c: 'c',
       ts: 'typescript',
+      typescript: 'typescript',
       go: 'go',
       rb: 'ruby',
       php: 'php',
@@ -640,43 +652,119 @@ app.post('/api/execute', codeExecutionLimiter, async (req, res) => {
       swift: 'swift',
     };
 
-    const response = await fetch('https://emkc.org/api/v2/piston/execute', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        language: languageMap[language] || language,
-        version: '*',
-        files: [
-          {
-            content: code,
-          },
-        ],
-      }),
-    });
+    const selectedLanguage = languageMap[language.toLowerCase()];
 
-    const data = await response.json();
-
-    if (data.run) {
-      res.json({
-        success: true,
-        output: data.run.output || data.run.stderr,
+    if (!selectedLanguage) {
+      return res.status(400).json({
+        success: false,
+        error: `Unsupported language: ${language}`,
+        output: `Language "${language}" is not supported.`,
       });
-    } else {
-      throw new Error('Execution failed');
     }
+
+    const fileName =
+      selectedLanguage === 'java' ? 'Main.java' :
+      selectedLanguage === 'python' ? 'main.py' :
+      selectedLanguage === 'javascript' ? 'main.js' :
+      selectedLanguage === 'cpp' ? 'main.cpp' :
+      selectedLanguage === 'c' ? 'main.c' :
+      'main.txt';
+
+    const headers = {
+      'Content-Type': 'application/json',
+    };
+
+    // Add a Piston API key if you have one configured in Render.
+    if (process.env.PISTON_API_KEY) {
+      headers.Authorization = process.env.PISTON_API_KEY;
+    }
+
+    const response = await fetch(
+      'https://emkc.org/api/v2/piston/execute',
+      {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          language: selectedLanguage,
+          version: '*',
+          files: [{ name: fileName, content: code }],
+        }),
+        signal: AbortSignal.timeout(30000),
+      }
+    );
+
+    const responseText = await response.text();
+
+    console.log('[EXECUTION] Piston HTTP status:', response.status);
+    console.log('[EXECUTION] Piston response:', responseText);
+
+    let data;
+
+    try {
+      data = JSON.parse(responseText);
+    } catch {
+      return res.status(502).json({
+        success: false,
+        error: 'Invalid response from execution service',
+        output: responseText || 'Execution service returned an invalid response.',
+      });
+    }
+
+    if (!response.ok) {
+      const message =
+        data.message ||
+        data.error ||
+        `Piston returned HTTP ${response.status}`;
+
+      return res.status(502).json({
+        success: false,
+        error: message,
+        output: message,
+      });
+    }
+
+    if (!data.run) {
+      return res.status(502).json({
+        success: false,
+        error: 'Execution result missing',
+        output: 'No execution result was returned.',
+      });
+    }
+
+    const output = [
+      data.compile?.output,
+      data.compile?.stderr,
+      data.run.output,
+      data.run.stderr,
+    ]
+      .filter(Boolean)
+      .join('\n');
+
+    const compileFailed =
+      data.compile && data.compile.code !== 0;
+
+    const runFailed = data.run.code !== 0;
+
+    return res.status(200).json({
+      success: !compileFailed && !runFailed,
+      output: output || 'Code executed successfully (no output).',
+      exitCode: data.run.code,
+      error: compileFailed
+        ? 'Compilation failed'
+        : runFailed
+          ? 'Program exited with an error'
+          : null,
+    });
   } catch (error) {
-    console.error('[ERROR] Code execution error:', error);
-    res.status(500).json({
+    console.error('[EXECUTION] Code execution error:', error);
+
+    return res.status(502).json({
       success: false,
       error: error.message,
-      output: 'Error executing code',
+      output:
+        error.name === 'TimeoutError' || error.name === 'AbortError'
+          ? 'Code execution service timed out.'
+          : 'Unable to connect to the code execution service.',
     });
   }
-});
-
-const PORT = process.env.PORT || 8080;
-server.listen(PORT, () => {
-  console.log(`[SUCCESS] Server running on port ${PORT}`);
 });
