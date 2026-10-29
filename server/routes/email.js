@@ -1,12 +1,13 @@
 
 const express = require('express');
-const { Resend } = require('resend');
 const router = express.Router();
 
 const { emailLimiter } = require('../middleware/rateLimiter');
 
 const FRONTEND_URL = 'https://dev-aura-virid.vercel.app';
+const BREVO_API_URL = 'https://api.brevo.com/v3';
 
+// Escape user-provided values before inserting them into HTML.
 const escapeHtml = (value = '') => {
   return String(value).replace(/[&<>"']/g, (char) => {
     const entities = {
@@ -21,26 +22,67 @@ const escapeHtml = (value = '') => {
   });
 };
 
+// Validate email address.
 const isValidEmail = (email) => {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 };
 
-// Create Resend client using the API key configured on the server.
-const createResendClient = () => {
-  if (!process.env.RESEND_API_KEY) {
-    throw new Error('RESEND_API_KEY is missing.');
+// Get Brevo API configuration.
+const getBrevoConfig = () => {
+  const apiKey = process.env.BREVO_API_KEY;
+  const senderEmail = process.env.BREVO_SENDER_EMAIL;
+
+  if (!apiKey) {
+    throw new Error('BREVO_API_KEY is missing.');
   }
 
-  return new Resend(process.env.RESEND_API_KEY);
+  if (!senderEmail || !isValidEmail(senderEmail)) {
+    throw new Error(
+      'BREVO_SENDER_EMAIL is missing or invalid.'
+    );
+  }
+
+  return { apiKey, senderEmail };
 };
 
-// Sender must be verified in Resend for production use.
-// onboarding@resend.dev is intended for Resend testing.
-const getSenderEmail = () => {
-  return (
-    process.env.RESEND_FROM_EMAIL ||
-    'DevAura <onboarding@resend.dev>'
-  );
+// Send a request to the Brevo HTTPS API.
+const brevoRequest = async (endpoint, options = {}) => {
+  const { apiKey } = getBrevoConfig();
+
+  const response = await fetch(`${BREVO_API_URL}${endpoint}`, {
+    ...options,
+    headers: {
+      'api-key': apiKey,
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+      ...(options.headers || {}),
+    },
+  });
+
+  const responseText = await response.text();
+
+  let result = {};
+
+  try {
+    result = responseText ? JSON.parse(responseText) : {};
+  } catch {
+    result = { message: responseText };
+  }
+
+  if (!response.ok) {
+    const error = new Error(
+      result.message ||
+      result.code ||
+      `Brevo API request failed with status ${response.status}`
+    );
+
+    error.statusCode = response.status;
+    error.providerResponse = result;
+
+    throw error;
+  }
+
+  return result;
 };
 
 // Send room invitation.
@@ -213,96 +255,103 @@ How to join:
 DevAura - AI-Powered Collaborative Coding Platform
     `.trim();
 
-    const resend = createResendClient();
+    const { senderEmail } = getBrevoConfig();
 
-    const { data, error } = await resend.emails.send({
-      from: getSenderEmail(),
-      to: [email],
-      subject,
-      html: htmlContent,
-      text: textContent,
+    const result = await brevoRequest('/smtp/email', {
+      method: 'POST',
+      body: JSON.stringify({
+        sender: {
+          name: 'DevAura',
+          email: senderEmail,
+        },
+        to: [
+          {
+            email,
+            ...(cleanRecipientName
+              ? { name: cleanRecipientName }
+              : {}),
+          },
+        ],
+        subject,
+        htmlContent,
+        textContent,
+      }),
     });
 
-    if (error) {
-      // Log the provider response, but never log API credentials.
-      console.error('[EMAIL] Resend send failed:', {
-        name: error.name,
-        message: error.message,
-        statusCode: error.statusCode,
-      });
-
-      return res.status(502).json({
-        success: false,
-        message: 'Email provider rejected the invitation. Check server logs.',
-      });
-    }
-
-    console.log('[EMAIL] Invitation accepted by Resend:', {
-      emailId: data?.id,
+    console.log('[EMAIL] Invitation accepted by Brevo:', {
+      messageId: result.messageId,
       recipient: email,
     });
 
     return res.status(200).json({
       success: true,
       message: 'Invitation email submitted successfully!',
-      messageId: data?.id,
+      messageId: result.messageId,
     });
   } catch (error) {
-    console.error('[EMAIL] Failed to send invitation:', {
+    console.error('[EMAIL] Brevo send failed:', {
       message: error.message,
-      name: error.name,
       statusCode: error.statusCode,
+      providerCode: error.providerResponse?.code,
+      providerMessage: error.providerResponse?.message,
     });
 
-    if (error.message === 'RESEND_API_KEY is missing.') {
+    if (
+      error.message === 'BREVO_API_KEY is missing.' ||
+      error.message === 'BREVO_SENDER_EMAIL is missing or invalid.'
+    ) {
       return res.status(500).json({
         success: false,
-        message: 'Email service is not configured on the server.',
+        message: 'Email service is not configured correctly.',
       });
     }
 
-    return res.status(500).json({
+    if (error.statusCode === 401 || error.statusCode === 403) {
+      return res.status(502).json({
+        success: false,
+        message: 'Brevo rejected the API request. Check the API key and sender settings.',
+      });
+    }
+
+    return res.status(502).json({
       success: false,
-      message: 'Failed to send invitation. Please try again later.',
+      message: 'Failed to send invitation. Check server logs.',
     });
   }
 });
 
-// Check whether the Resend API key works.
+// Check Brevo API credentials.
 // This endpoint does not send an email.
 router.get('/test', async (req, res) => {
   try {
-    const resend = createResendClient();
-
-    const { data, error } = await resend.domains.list();
-
-    if (error) {
-      console.error('[EMAIL] Resend API verification failed:', {
-        name: error.name,
-        message: error.message,
-        statusCode: error.statusCode,
-      });
-
-      return res.status(502).json({
-        success: false,
-        message: 'Resend API verification failed. Check server logs.',
-      });
-    }
+    await brevoRequest('/account', {
+      method: 'GET',
+    });
 
     return res.status(200).json({
       success: true,
-      message: 'Resend API connection successful.',
+      message: 'Brevo API connection successful.',
     });
   } catch (error) {
-    console.error('[EMAIL] Resend test failed:', {
+    console.error('[EMAIL] Brevo API verification failed:', {
       message: error.message,
-      name: error.name,
       statusCode: error.statusCode,
+      providerCode: error.providerResponse?.code,
     });
 
-    return res.status(500).json({
+    if (
+      error.message === 'BREVO_API_KEY is missing.' ||
+      error.message === 'BREVO_SENDER_EMAIL is missing or invalid.'
+    ) {
+      return res.status(500).json({
+        success: false,
+        message: 'Email environment variables are missing or invalid.',
+      });
+    }
+
+    return res.status(502).json({
       success: false,
-      message: 'Could not connect to Resend. Check server configuration.',
+      message: 'Brevo API verification failed. Check Render logs.',
     });
   }
 });
