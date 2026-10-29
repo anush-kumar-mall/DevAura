@@ -1,270 +1,322 @@
+
 const express = require('express');
 const nodemailer = require('nodemailer');
 const router = express.Router();
 
-// Import rate limiter
 const { emailLimiter } = require('../middleware/rateLimiter');
 
+const FRONTEND_URL = 'https://dev-aura-virid.vercel.app';
+
+// Gmail SMTP transporter
 const createTransporter = () => {
   return nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.EMAIL_USER, 
-      pass: process.env.EMAIL_PASS  
-    }
-  });
-};
-
-const createCustomTransporter = () => {
-  return nodemailer.createTransport({
     host: process.env.SMTP_HOST || 'smtp.gmail.com',
-    port: process.env.SMTP_PORT || 587,
-    secure: false, 
+    port: Number(process.env.SMTP_PORT) || 465,
+    secure: Number(process.env.SMTP_PORT || 465) === 465,
     auth: {
       user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS
-    }
+      pass: process.env.EMAIL_PASS,
+    },
+    connectionTimeout: 15000,
+    greetingTimeout: 15000,
+    socketTimeout: 20000,
   });
 };
 
+// Escape user-provided values before inserting them into HTML.
+const escapeHtml = (value = '') => {
+  return String(value).replace(/[&<>"']/g, (char) => {
+    const entities = {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;',
+    };
+
+    return entities[char];
+  });
+};
+
+// Validate email address
+const isValidEmail = (email) => {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+};
+
+// Share room invitation
 router.post('/share-room', emailLimiter, async (req, res) => {
   try {
-    const { 
-      recipientEmail, 
-      recipientName, 
-      senderName, 
-      roomId, 
-      roomUrl, 
-      message 
-    } = req.body;
+    const {
+      recipientEmail,
+      recipientName,
+      senderName,
+      roomId,
+      message,
+    } = req.body || {};
 
-    if (!recipientEmail || !roomId) {
+    if (
+      typeof recipientEmail !== 'string' ||
+      !recipientEmail.trim() ||
+      typeof roomId !== 'string' ||
+      !roomId.trim()
+    ) {
       return res.status(400).json({
         success: false,
-        message: 'Recipient email and room ID are required'
+        message: 'Recipient email and room ID are required.',
       });
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(recipientEmail)) {
+    const email = recipientEmail.trim();
+    const cleanRoomId = roomId.trim();
+
+    if (!isValidEmail(email)) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid email address'
+        message: 'Please enter a valid email address.',
+      });
+    }
+
+    if (email.length > 254 || cleanRoomId.length > 200) {
+      return res.status(400).json({
+        success: false,
+        message: 'The email address or room ID is too long.',
       });
     }
 
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+      console.error('[EMAIL] EMAIL_USER or EMAIL_PASS is missing.');
+
       return res.status(500).json({
         success: false,
-        message: 'Email service not configured. Please contact administrator.'
+        message: 'Email service is not configured. Please contact the administrator.',
       });
     }
 
-    const transporter = createTransporter();
+    const cleanRecipientName =
+      typeof recipientName === 'string'
+        ? recipientName.trim().slice(0, 100)
+        : '';
 
-    const subject = `${senderName || 'Someone'} invited you to collaborate on DevAura`;
-    
+    const cleanSenderName =
+      typeof senderName === 'string' && senderName.trim()
+        ? senderName.trim().slice(0, 100)
+        : 'Someone';
+
+    const cleanMessage =
+      typeof message === 'string'
+        ? message.trim().slice(0, 1000)
+        : '';
+
+    // The deployed room ID is included so the recipient can join manually.
+    const roomUrl = FRONTEND_URL;
+
+    const safeRecipientName = escapeHtml(cleanRecipientName || 'there');
+    const safeSenderName = escapeHtml(cleanSenderName);
+    const safeRoomId = escapeHtml(cleanRoomId);
+    const safeMessage = escapeHtml(cleanMessage);
+
+    const subject = `${cleanSenderName} invited you to collaborate on DevAura`;
+
     const htmlContent = `
       <!DOCTYPE html>
-      <html>
+      <html lang="en">
       <head>
-        <style>
-          body { 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
-            line-height: 1.6; 
-            color: #333; 
-            max-width: 600px; 
-            margin: 0 auto; 
-            padding: 20px; 
-          }
-          .header { 
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-            color: white; 
-            padding: 30px; 
-            text-align: center; 
-            border-radius: 8px 8px 0 0; 
-          }
-          .content { 
-            background: #f8fafc; 
-            padding: 30px; 
-            border: 1px solid #e2e8f0; 
-          }
-          .footer { 
-            background: #2d3748; 
-            color: white; 
-            padding: 20px; 
-            text-align: center; 
-            border-radius: 0 0 8px 8px; 
-            font-size: 14px; 
-          }
-          .btn { 
-            display: inline-block; 
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-            color: white; 
-            padding: 12px 24px; 
-            text-decoration: none; 
-            border-radius: 6px; 
-            margin: 20px 0; 
-            font-weight: bold; 
-          }
-          .room-info { 
-            background: white; 
-            border: 1px solid #e2e8f0; 
-            border-radius: 6px; 
-            padding: 16px; 
-            margin: 20px 0; 
-          }
-          .room-id { 
-            font-family: monospace; 
-            background: #f1f5f9; 
-            padding: 8px; 
-            border-radius: 4px; 
-            font-size: 14px; 
-          }
-        </style>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>DevAura Invitation</title>
       </head>
-      <body>
-        <div class="header">
-          <h1>🚀 DevAura Collaboration Invitation</h1>
-          <p>You've been invited to join a collaborative coding session!</p>
-        </div>
-        
-        <div class="content">
-          <h2>Hi ${recipientName || 'there'}! 👋</h2>
-          
-          <p><strong>${senderName || 'Someone'}</strong> has invited you to collaborate on a coding project using DevAura.</p>
-          
-          ${message ? `<p><em>"${message}"</em></p>` : ''}
-          
-          <div class="room-info">
-            <h3>📍 How to Join:</h3>
-            <p><strong>Room ID:</strong> <span class="room-id">${roomId}</span></p>
-            <p>1. Go to <a href="https://codeunity.dev" style="color: #667eea;">DevAura</a></p>
-            <p>2. Enter the Room ID above to join the collaboration session</p>
+      <body style="margin:0;padding:20px;background:#f1f5f9;font-family:Arial,Helvetica,sans-serif;color:#1e293b;">
+        <div style="max-width:600px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #e2e8f0;">
+
+          <div style="padding:30px 20px;text-align:center;background:linear-gradient(135deg,#667eea,#764ba2);color:#ffffff;">
+            <h1 style="margin:0 0 10px;">DevAura 🚀</h1>
+            <p style="margin:0;">Collaborate. Code. Create.</p>
           </div>
-          
-          <div style="text-align: center;">
-            <p style="background: #f8f9fa; padding: 15px; border-radius: 6px; margin: 20px 0;">
-              <strong>Room ID: ${roomId}</strong><br>
-              <small>Copy this ID and enter it on DevAura to join the session</small>
+
+          <div style="padding:30px;">
+            <h2>Hi ${safeRecipientName}! 👋</h2>
+
+            <p>
+              <strong>${safeSenderName}</strong> has invited you
+              to collaborate on a coding session using DevAura.
+            </p>
+
+            ${
+              cleanMessage
+                ? `<div style="padding:15px;background:#f8fafc;border-left:4px solid #818cf8;margin:20px 0;">
+                    <p style="margin:0 0 6px;"><strong>Personal message:</strong></p>
+                    <p style="margin:0;white-space:pre-wrap;">${safeMessage}</p>
+                  </div>`
+                : ''
+            }
+
+            <div style="padding:20px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;margin:24px 0;">
+              <h3 style="margin-top:0;">Your Room ID</h3>
+              <p style="padding:12px;background:#ffffff;border:1px solid #e2e8f0;border-radius:6px;font-family:monospace;word-break:break-all;">
+                ${safeRoomId}
+              </p>
+
+              <div style="text-align:center;margin-top:24px;">
+                <a
+                  href="${roomUrl}"
+                  style="display:inline-block;padding:13px 24px;background:#6366f1;color:#ffffff;text-decoration:none;border-radius:7px;font-weight:bold;"
+                >
+                  Open DevAura
+                </a>
+              </div>
+            </div>
+
+            <h3>How to join</h3>
+            <ol>
+              <li>Open DevAura using the button above.</li>
+              <li>Join the collaboration room using the Room ID provided.</li>
+              <li>Start coding and collaborating in real time!</li>
+            </ol>
+
+            <p style="color:#64748b;font-size:13px;">
+              You can use DevAura to edit code together, chat with collaborators,
+              draw on the shared whiteboard, and run code.
             </p>
           </div>
-          
-          <h3>✨ What you can do:</h3>
-          <ul>
-            <li>💻 Write and edit code together in real-time</li>
-            <li>💬 Chat with your team members</li>
-            <li>🤖 Get AI-powered code assistance</li>
-            <li>▶️ Run and test code collaboratively</li>
-            <li>📁 Manage files and projects together</li>
-          </ul>
-          
-          <p><small>💡 <strong>Tip:</strong> Save the Room ID for easy access to continue collaborating!</small></p>
-        </div>
-        
-        <div class="footer">
-          <p>This invitation was sent via DevAura - AI-Powered Collaborative Coding Platform</p>
-          <p>🌐 <a href="https://codeunity.dev" style="color: #cbd5e0;">codeunity.dev</a></p>
+
+          <div style="padding:20px;text-align:center;background:#1e293b;color:#cbd5e1;font-size:13px;">
+            <p>You're receiving this email because someone invited you to DevAura.</p>
+            <p>
+              <a href="${roomUrl}" style="color:#c4b5fd;">${roomUrl}</a>
+            </p>
+          </div>
+
         </div>
       </body>
       </html>
     `;
 
     const textContent = `
-${senderName || 'Someone'} invited you to collaborate on DevAura!
+DevAura Collaboration Invitation
 
-Hi ${recipientName || 'there'}!
+Hi ${cleanRecipientName || 'there'}!
 
-${senderName || 'Someone'} has invited you to join a collaborative coding session on DevAura.
+${cleanSenderName} has invited you to collaborate on DevAura.
 
-${message ? `Message: "${message}"` : ''}
+${cleanMessage ? `Personal message: ${cleanMessage}\n` : ''}
 
-How to Join:
-- Room ID: ${roomId}
-- Go to DevAura (https://codeunity.dev)
-- Enter the Room ID above to join the collaboration session
+Room ID: ${cleanRoomId}
 
-What you can do:
-- Write and edit code together in real-time
-- Chat with your team members  
-- Get AI-powered code assistance
-- Run and test code collaboratively
-- Manage files and projects together
+Open DevAura:
+${roomUrl}
 
-This invitation was sent via DevAura - AI-Powered Collaborative Coding Platform
-Visit: https://codeunity.dev
-    `;
+How to join:
+1. Open DevAura using the link above.
+2. Join the room using the Room ID.
+3. Start collaborating!
+
+DevAura - AI-Powered Collaborative Coding Platform
+    `.trim();
+
+    const transporter = createTransporter();
 
     const mailOptions = {
       from: {
         name: 'DevAura',
-        address: process.env.EMAIL_USER
+        address: process.env.EMAIL_USER,
       },
-      to: recipientEmail,
-      subject: subject,
+      to: email,
+      subject,
       text: textContent,
-      html: htmlContent
+      html: htmlContent,
     };
 
     const info = await transporter.sendMail(mailOptions);
-    
-    console.log('Email sent successfully:', info.messageId);
 
-    res.json({
-      success: true,
-      message: 'Invitation email sent successfully!',
-      messageId: info.messageId
+    console.log('[EMAIL] Invitation sent successfully:', {
+      messageId: info.messageId,
+      accepted: info.accepted,
+      rejected: info.rejected,
     });
 
+    if (!info.accepted || info.accepted.length === 0) {
+      console.error('[EMAIL] SMTP did not accept the recipient.');
+
+      return res.status(502).json({
+        success: false,
+        message: 'The email server did not accept the recipient address.',
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Invitation email sent successfully!',
+      messageId: info.messageId,
+    });
   } catch (error) {
-    console.error('Error sending email:', error);
-    
+    // Log diagnostic information without exposing credentials.
+    console.error('[EMAIL] Failed to send invitation:', {
+      message: error.message,
+      code: error.code,
+      command: error.command,
+      responseCode: error.responseCode,
+      response: error.response,
+    });
+
     if (error.code === 'EAUTH') {
       return res.status(500).json({
         success: false,
-        message: 'Email authentication failed. Please check email configuration.'
-      });
-    }
-    
-    if (error.code === 'ENOTFOUND') {
-      return res.status(500).json({
-        success: false,
-        message: 'Email server not found. Please check your internet connection.'
+        message: 'Email authentication failed. Check the Gmail App Password in Render.',
       });
     }
 
-    res.status(500).json({
+    if (
+      error.code === 'ENOTFOUND' ||
+      error.code === 'ECONNECTION' ||
+      error.code === 'ETIMEDOUT' ||
+      error.code === 'ESOCKET'
+    ) {
+      return res.status(502).json({
+        success: false,
+        message: 'Could not connect to the email server. Please try again later.',
+      });
+    }
+
+    return res.status(500).json({
       success: false,
       message: 'Failed to send email. Please try again later.',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 });
 
+// Check email configuration and SMTP connectivity.
+// This endpoint does not send an email.
 router.get('/test', async (req, res) => {
   try {
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
       return res.status(500).json({
         success: false,
-        message: 'Email configuration missing. Please set EMAIL_USER and EMAIL_PASS environment variables.'
+        message: 'EMAIL_USER or EMAIL_PASS is missing in the server environment.',
       });
     }
 
     const transporter = createTransporter();
-    
+
     await transporter.verify();
-    
-    res.json({
+
+    console.log('[EMAIL] SMTP connection verified successfully.');
+
+    return res.status(200).json({
       success: true,
-      message: 'Email configuration is valid and ready to use!'
+      message: 'SMTP connection verified successfully.',
     });
-    
   } catch (error) {
-    console.error('Email test failed:', error);
-    res.status(500).json({
+    console.error('[EMAIL] SMTP verification failed:', {
+      message: error.message,
+      code: error.code,
+      command: error.command,
+      responseCode: error.responseCode,
+      response: error.response,
+    });
+
+    return res.status(500).json({
       success: false,
-      message: 'Email configuration test failed',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      message: 'SMTP verification failed. Check the Render email configuration and logs.',
     });
   }
 });
