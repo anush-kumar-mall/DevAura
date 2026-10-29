@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FaLinkedin, FaGithub, FaInstagram } from 'react-icons/fa';
 import { MdEmail } from 'react-icons/md';
-import codeunityLogo from '../../assets/logo.png';
+// import codeunityLogo from '../../assets/logo.png';
 
 const PRODUCT_FEATURES = [
   'Real-time Collaboration',
@@ -36,8 +36,9 @@ const Footer = ({ scrollToSection, refs }) => {
           {/* Brand */}
           <div className="lg:col-span-1 space-y-6">
             <motion.div className="flex items-center gap-3" whileHover={{ scale: 1.05 }}>
-              <img src={codeunityLogo} alt="CodeUnity" className="h-10 w-auto object-contain" />
-              <span className="text-white font-bold text-xl tracking-tight">CODE UNITY</span>
+              <span className="text-2xl font-extrabold tracking-tight text-white transition duration-300 group-hover:scale-[1.02]">
+              Dev<span className="text-pink-400">Aura</span>
+            </span>
             </motion.div>
 
             <blockquote className="text-white/80 italic text-sm leading-relaxed">

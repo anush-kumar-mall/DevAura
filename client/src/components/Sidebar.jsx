@@ -1,11 +1,32 @@
+
 import React from 'react';
 import { motion } from 'framer-motion';
-import { FaFolder, FaUsers, FaPaintBrush, FaComments, FaRobot, FaLock } from 'react-icons/fa';
-import codeunityLogo from '../assets/logo.png';
+import {
+  FaFolder,
+  FaUsers,
+  FaPaintBrush,
+  FaComments,
+  FaRobot,
+  FaLock,
+  FaHome,
+} from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
 
-const SideBar = ({ activeTab, setActiveTab, unreadCount, onAuthRequired }) => {
+// import codeunityLogo from '../assets/logo.png';
+
+const SideBar = ({
+  activeTab,
+  setActiveTab,
+  unreadCount,
+  onAuthRequired,
+}) => {
+  const navigate = useNavigate();
+
   const isAuthenticated = !!localStorage.getItem('codeunity_token');
-  const usageCount = parseInt(localStorage.getItem('codeunity_usage_count') || '0', 10);
+  const usageCount = parseInt(
+    localStorage.getItem('codeunity_usage_count') || '0',
+    10
+  );
   const isLimitReached = usageCount >= 3;
 
   const handleTabClick = (tab) => {
@@ -15,37 +36,59 @@ const SideBar = ({ activeTab, setActiveTab, unreadCount, onAuthRequired }) => {
       }
       return;
     }
+
     setActiveTab(tab.id);
+  };
+
+  const handleHomeClick = () => {
+    navigate('/');
   };
 
   const tabs = [
     { id: 'files', icon: FaFolder, label: 'Files', restricted: false },
-    { id: 'users', icon: FaUsers, label: 'Users', restricted: false }, // Always visible
-    { id: 'draw', icon: FaPaintBrush, label: 'Draw', restricted: !isAuthenticated && isLimitReached },
-    { id: 'chat', icon: FaComments, label: 'Chat', badge: unreadCount, restricted: !isAuthenticated && isLimitReached },
-    { id: 'copilot', icon: FaRobot, label: 'AI', restricted: !isAuthenticated && isLimitReached }
+    { id: 'users', icon: FaUsers, label: 'Users', restricted: false },
+    {
+      id: 'draw',
+      icon: FaPaintBrush,
+      label: 'Draw',
+      restricted: !isAuthenticated && isLimitReached,
+    },
+    {
+      id: 'chat',
+      icon: FaComments,
+      label: 'Chat',
+      badge: unreadCount,
+      restricted: !isAuthenticated && isLimitReached,
+    },
+    {
+      id: 'copilot',
+      icon: FaRobot,
+      label: 'AI',
+      restricted: !isAuthenticated && isLimitReached,
+    },
   ];
 
   return (
     <div className="h-full flex flex-col items-center py-6 relative">
-      {/* Logo/Brand */}
-      <motion.div 
-        className="mb-8"
+      {/* Home Button */}
+      <motion.button
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.1 }}
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={handleHomeClick}
+        className="w-12 h-12 mb-6 rounded-xl flex items-center justify-center
+                   border border-transparent text-gray-400
+                   hover:bg-pink-500/10 hover:border-pink-500/30
+                   hover:text-pink-400 transition-all duration-300 group"
+        title="Go to Home"
+        aria-label="Go to landing page"
       >
-        <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-lg">
-          <img 
-            src={codeunityLogo} 
-            alt="DevAura" 
-            className="w-8 h-8 object-contain rounded-lg"
-          />
-        </div>
-      </motion.div>
+        <FaHome className="w-5 h-5 transition-all duration-200 group-hover:scale-110" />
+      </motion.button>
 
       {/* Navigation Icons */}
-      <div className="flex flex-col gap-3 flex-1">
+      <div className="flex flex-col items-center gap-3 flex-1">
         {tabs.map((tab, index) => (
           <motion.div
             key={tab.id}
@@ -59,26 +102,34 @@ const SideBar = ({ activeTab, setActiveTab, unreadCount, onAuthRequired }) => {
               whileTap={{ scale: 0.95 }}
               onClick={() => handleTabClick(tab)}
               className={`
-                relative w-12 h-12 rounded-xl flex items-center justify-center 
+                relative w-12 h-12 rounded-xl flex items-center justify-center
                 transition-all duration-300 group
-                ${activeTab === tab.id
-                  ? 'bg-gradient-to-br from-pink-500/20 to-purple-600/20 border border-pink-500/30 shadow-lg shadow-pink-500/10'
-                  : tab.restricted
-                  ? 'hover:bg-gray-800/20 border border-transparent text-gray-600 cursor-pointer'
-                  : 'hover:bg-gray-800/30 border border-transparent hover:border-gray-700/30 text-gray-400 hover:text-white'
+                ${
+                  activeTab === tab.id
+                    ? 'bg-gradient-to-br from-pink-500/20 to-purple-600/20 border border-pink-500/30 shadow-lg shadow-pink-500/10'
+                    : tab.restricted
+                    ? 'hover:bg-gray-800/20 border border-transparent text-gray-600 cursor-pointer'
+                    : 'hover:bg-gray-800/30 border border-transparent hover:border-gray-700/30 text-gray-400 hover:text-white'
                 }
               `}
-              title={tab.restricted ? `${tab.label} (Sign in required)` : tab.label}
+              title={
+                tab.restricted
+                  ? `${tab.label} (Sign in required)`
+                  : tab.label
+              }
+              aria-label={tab.label}
             >
-              <tab.icon className={`w-4 h-4 transition-all duration-200 ${
-                activeTab === tab.id 
-                  ? 'text-pink-400 scale-110' 
-                  : tab.restricted 
-                  ? 'text-gray-600' 
-                  : 'text-gray-400 group-hover:text-white group-hover:scale-105'
-              }`} />
-              
-              {/* Active indicator */}
+              <tab.icon
+                className={`w-4 h-4 transition-all duration-200 ${
+                  activeTab === tab.id
+                    ? 'text-pink-400 scale-110'
+                    : tab.restricted
+                    ? 'text-gray-600'
+                    : 'text-gray-400 group-hover:text-white group-hover:scale-105'
+                }`}
+              />
+
+              {/* Active Indicator */}
               {activeTab === tab.id && (
                 <motion.div
                   layoutId="activeTab"
@@ -86,8 +137,8 @@ const SideBar = ({ activeTab, setActiveTab, unreadCount, onAuthRequired }) => {
                   initial={false}
                 />
               )}
-              
-              {/* Badge for chat */}
+
+              {/* Chat Unread Badge */}
               {tab.badge > 0 && (
                 <motion.div
                   initial={{ scale: 0 }}
@@ -99,8 +150,8 @@ const SideBar = ({ activeTab, setActiveTab, unreadCount, onAuthRequired }) => {
                   </span>
                 </motion.div>
               )}
-              
-              {/* Restriction indicator */}
+
+              {/* Restriction Indicator */}
               {tab.restricted && (
                 <div className="absolute -top-1 -right-1 w-4 h-4 bg-yellow-500 rounded-full flex items-center justify-center">
                   <FaLock className="w-2 h-2 text-black" />
@@ -111,7 +162,7 @@ const SideBar = ({ activeTab, setActiveTab, unreadCount, onAuthRequired }) => {
         ))}
       </div>
 
-      {/* Bottom accent */}
+      {/* Bottom Accent */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}

@@ -21,10 +21,9 @@ const EditorHeader = ({
     >
       <div className="flex items-center gap-4">
         <h1 className="text-white font-semibold text-lg">
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-purple-600">
-            Code
-          </span>
-          <span className="text-white">Unity</span>
+          <span className="text-2xl font-extrabold tracking-tight text-white transition duration-300 group-hover:scale-[1.02]">
+              Dev<span className="text-pink-400">Aura</span>
+            </span>
         </h1>
 
         {activeTab === 'draw' ? (
