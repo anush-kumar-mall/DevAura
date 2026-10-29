@@ -23,6 +23,7 @@ const { isRedisAvailable, getCacheStats } = require('./config/redis');
 require('./config/database');
 
 const app = express();
+app.set('trust proxy', 1);
 const server = http.createServer(app);
 
 // Socket.IO configuration
@@ -675,12 +676,12 @@ app.post('/api/execute', codeExecutionLimiter, async (req, res) => {
     };
 
     // Add a Piston API key if you have one configured in Render.
-    if (process.env.PISTON_API_KEY) {
-      headers.Authorization = process.env.PISTON_API_KEY;
-    }
+    if (process.env.ONLINECOMPILER_API_KEY) {
+  headers.Authorization = process.env.ONLINECOMPILER_API_KEY;
+}
 
     const response = await fetch(
-      'https://emkc.org/api/v2/piston/execute',
+      'https://api.onlinecompiler.io/api/v2/piston/execute',
       {
         method: 'POST',
         headers,
