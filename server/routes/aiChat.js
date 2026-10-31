@@ -107,27 +107,37 @@ router.post('/save-messages', async (req, res) => {
       timestamp: message.timestamp ? new Date(message.timestamp) : new Date()
     }));
     
-    // Get existing chat or create new one
-    let chat = await AiChat.getChatHistory(roomId, sessionId, userId);
-    
-    if (!chat) {
-      chat = new AiChat({
-        roomId,
-        sessionId,
-        userId,
-        messages: messagesToSave
-      });
-    } else {
-      // Replace all messages with the new set
-      chat.messages = messagesToSave;
-    }
-    
     // Keep only the last 100 messages
-    if (chat.messages.length > 100) {
-      chat.messages = chat.messages.slice(-100);
+const limitedMessages = messagesToSave.slice(-100);
+
+// Build query
+const query = { roomId, sessionId };
+
+if (userId) {
+  query.userId = userId;
+}
+
+// Atomic update: avoids stale-document VersionError
+const savedChat = await AiChat.findOneAndUpdate(
+  query,
+  {
+    $set: {
+      messages: limitedMessages,
+      lastActivity: new Date()
+    },
+    $setOnInsert: {
+      roomId,
+      sessionId,
+      ...(userId ? { userId } : {})
     }
-    
-    const savedChat = await chat.save();
+  },
+  {
+    new: true,
+    upsert: true,
+    runValidators: true,
+    setDefaultsOnInsert: true
+  }
+);
     
     res.json({
       success: true,
