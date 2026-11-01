@@ -23,6 +23,7 @@ import { useEditorUIEffects } from '../hooks/Editor/useEditorUIEffects';
 const Editor = () => {
   const { roomId } = useParams();
   const { state } = useLocation();
+  const authToken = localStorage.getItem('codeunity_token') || null;
 
   const [activeTab, setActiveTab] = useState('files');
   const [showShareModal, setShowShareModal] = useState(false);
@@ -43,6 +44,7 @@ const Editor = () => {
   const { socketRef, users, unreadCount, setUnreadCount } = useSocket({
     roomId,
     username: state?.username,
+    authToken,
     activeTabRef,
     onFilesUpdated: setFiles,
     onFileCreated: (name, content) => setFiles(prev => ({ ...prev, [name]: content })),

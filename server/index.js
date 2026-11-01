@@ -5,6 +5,8 @@ const cors = require('cors');
 const passport = require('passport');
 const { Server } = require('socket.io');
 const mongoose = require('mongoose');
+const jwt = require('jsonwebtoken');
+const User = require('./models/user');
 const File = require('./models/file');
 const TldrawState = require('./models/tldrawState');
 
@@ -229,13 +231,73 @@ const usersInRoom = {};
 const rooms = new Map();
 const roomFiles = new Map();
 
+// Authenticate Socket.IO connections when a JWT is provided
+io.use(async (socket, next) => {
+  const token = socket.handshake.auth?.token;
+
+  // Allow existing guest connections for now.
+  // Persistent guest identity will be implemented in Step 1B.
+  if (!token) {
+    socket.data.identity = {
+      type: 'guest',
+      userId: null,
+      username: null,
+    };
+
+    return next();
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    if (!decoded.userId) {
+      return next(new Error('Invalid authentication token'));
+    }
+
+    const user = await User.findById(decoded.userId).select('_id username');
+
+    if (!user) {
+      return next(new Error('User not found'));
+    }
+
+    socket.data.identity = {
+      type: 'user',
+      userId: user._id.toString(),
+      username: user.username,
+    };
+
+    next();
+  } catch (error) {
+    console.error('[SOCKET AUTH ERROR]:', error.message);
+    next(new Error('Authentication failed'));
+  }
+});
+
 io.on('connection', (socket) => {
-  console.log('[INFO] User connected:', socket.id);
+  console.log('[INFO] User connected:', {
+  socketId: socket.id,
+  identityType: socket.data.identity?.type,
+  userId: socket.data.identity?.userId || null,
+});
 
   socket.on('join-room', async (data) => {
     const roomId = typeof data === 'string' ? data : data.roomId;
-    const username = typeof data === 'object' ? data.username : `User-${socket.id.slice(0, 4)}`;
-    const isTldrawConnection = typeof data === 'object' ? data.isTldrawConnection : false;
+
+const identity = socket.data.identity;
+
+const username = identity?.type === 'user'
+  ? identity.username
+  : (typeof data === 'object' && data.username
+      ? data.username
+      : `User-${socket.id.slice(0, 4)}`);
+
+const isTldrawConnection = typeof data === 'object'
+  ? data.isTldrawConnection
+  : false;
+
+// Attach verified identity to this socket
+socket.userId = identity?.userId || null;
+socket.identityType = identity?.type || 'guest';
     
     console.log(`[INFO] Join room: ${roomId} by ${username} (${socket.id}) ${isTldrawConnection ? '[TlDraw]' : '[Main]'}`);
     

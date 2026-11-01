@@ -5,7 +5,16 @@ const BACKEND_URL = import.meta.env.PROD
   ? 'https://devaura-3l4q.onrender.com'
   : 'https://devaura-3l4q.onrender.com';
 
-export const useSocket = ({ roomId, username, activeTabRef, onFilesUpdated, onFileCreated, onFileDeleted, onFileContentChange }) => {
+export const useSocket = ({
+  roomId,
+  username,
+  authToken,
+  activeTabRef,
+  onFilesUpdated,
+  onFileCreated,
+  onFileDeleted,
+  onFileContentChange
+}) => {
   const socketRef = useRef(null);
   const [users, setUsers] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -14,8 +23,11 @@ export const useSocket = ({ roomId, username, activeTabRef, onFilesUpdated, onFi
     if (!roomId || !username) return;
 
     socketRef.current = io(BACKEND_URL, {
-      withCredentials: true,
-      transports: ['polling', 'websocket'],
+  auth: {
+    token: authToken || null,
+  },
+  withCredentials: true,
+  transports: ['polling', 'websocket'],
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
       timeout: 20000,
@@ -74,7 +86,7 @@ export const useSocket = ({ roomId, username, activeTabRef, onFilesUpdated, onFi
       socket.removeAllListeners();
       socket.disconnect();
     };
-  }, [roomId, username]);
+  }, [roomId, username, authToken]);
 
   return { socketRef, users, unreadCount, setUnreadCount };
 };
