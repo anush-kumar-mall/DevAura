@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 import {
   FaRobot,
@@ -32,12 +32,24 @@ const CopilotPanel = ({ currentFile, code, onCodeInsert, roomId }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [aiStatus, setAiStatus] = useState(null);
 
+  // Input references for automatic focus
+  const inputRef = useRef(null);
+  const hasSubmitted = useRef(false);
+
   // Chat persistence hooks
   const {
     loadChatHistory,
     saveMessage,
     syncToLocalStorage,
   } = useChatPersistence(roomId);
+
+  // Automatically focus input after AI response
+  useEffect(() => {
+    if (!isLoading && hasSubmitted.current) {
+      inputRef.current?.focus();
+      hasSubmitted.current = false;
+    }
+  }, [isLoading]);
 
   // Convert saved chat messages into LLM conversation format
   const buildConversationHistory = (messages) => {
@@ -224,6 +236,9 @@ const CopilotPanel = ({ currentFile, code, onCodeInsert, roomId }) => {
     if (!prompt.trim() || isLoading) return;
 
     const userPrompt = prompt.trim();
+
+    // Mark that user has submitted a message
+    hasSubmitted.current = true;
 
     setPrompt('');
     setIsLoading(true);
@@ -452,11 +467,15 @@ const CopilotPanel = ({ currentFile, code, onCodeInsert, roomId }) => {
 
               {item.aiService && (
                 <span className="text-xs bg-pink-500/20 text-pink-300 px-2 py-0.5 rounded-full border border-pink-400/20">
-                  {item.aiService === 'openai'
-                    ? '🤖 OpenAI'
-                    : item.aiService === 'ollama'
-                      ? '🆓 Ollama'
-                      : '⚡ Pattern'}
+                  {item.aiService === 'groq'
+                    ? '⚡ Groq'
+                    : item.aiService === 'gemini'
+                      ? '✨ Gemini'
+                      : item.aiService === 'openai'
+                        ? '🤖 OpenAI'
+                        : item.aiService === 'ollama'
+                          ? '🆓 Ollama'
+                          : '⚡ Pattern'}
                 </span>
               )}
 
@@ -554,6 +573,7 @@ const CopilotPanel = ({ currentFile, code, onCodeInsert, roomId }) => {
           className="flex gap-3 min-w-0"
         >
           <input
+            ref={inputRef}
             type="text"
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
