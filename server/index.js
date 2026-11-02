@@ -292,6 +292,7 @@ io.on('connection', (socket) => {
   socketId: socket.id,
   identityType: socket.data.identity?.type,
   userId: socket.data.identity?.userId || null,
+  guestId: socket.data.identity?.guestId || null,
 });
 
   socket.on('join-room', async (data) => {
