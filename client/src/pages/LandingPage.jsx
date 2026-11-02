@@ -13,6 +13,57 @@ import AboutSection from '../components/LandingPage/AboutSection';
 import TestimonialsSection from '../components/LandingPage/TestimonialsSection';
 import Footer from '../components/LandingPage/Footer';
 
+const BACKEND_URL = 'https://devaura-3l4q.onrender.com';
+
+// Check whether a JWT exists and has not expired.
+// This only checks expiry; the backend verifies the signature.
+const isTokenValid = (token) => {
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return false;
+
+    const payload = JSON.parse(atob(parts[1]));
+    return typeof payload.exp === 'number' &&
+      payload.exp * 1000 > Date.now();
+  } catch {
+    return false;
+  }
+};
+
+// Get an existing guest token or request a new one.
+const getGuestToken = async () => {
+  const savedToken = localStorage.getItem('codeunity_guest_token');
+
+  // Reuse the existing guest identity.
+  if (savedToken && isTokenValid(savedToken)) {
+    return savedToken;
+  }
+
+  // Remove expired or invalid guest credentials.
+  localStorage.removeItem('codeunity_guest_token');
+  localStorage.removeItem('codeunity_guest_id');
+
+  // Ask the backend to create a signed guest identity.
+  const response = await fetch(`${BACKEND_URL}/api/auth/guest-token`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  const data = await response.json();
+
+  if (!response.ok || !data.success || !data.token || !data.guestId) {
+    throw new Error(data.message || 'Unable to create guest identity');
+  }
+
+  // Persist the guest identity across refreshes and rooms.
+  localStorage.setItem('codeunity_guest_token', data.token);
+  localStorage.setItem('codeunity_guest_id', data.guestId);
+
+  return data.token;
+};
+
 const LandingPage = () => {
   const navigate = useNavigate();
 
@@ -22,6 +73,7 @@ const LandingPage = () => {
   const [scrollY, setScrollY] = useState(0);
   const [activeSection, setActiveSection] = useState('HOME');
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [isJoining, setIsJoining] = useState(false);
 
   // Authentication
   const { user, setUserAuth } = useUsageTracking();
@@ -127,8 +179,6 @@ const LandingPage = () => {
         let currentSection = 'HOME';
 
         // Sections are checked in DOM order.
-        // The last section whose top has crossed the detection
-        // point becomes active. This works in both scroll directions.
         for (const section of sections) {
           const element = section.ref.current;
 
@@ -140,7 +190,6 @@ const LandingPage = () => {
           if (sectionTop <= detectionPoint) {
             currentSection = section.name;
           } else {
-            // Later sections are further down the page.
             break;
           }
         }
@@ -191,15 +240,41 @@ const LandingPage = () => {
     });
   };
 
-  // Join an existing room
-  const joinRoom = () => {
+  // Join an existing room with authenticated or guest identity.
+  const joinRoom = async () => {
     if (!roomId.trim() || !username.trim()) {
       return alert('Both Room ID and Username required');
     }
 
-    navigate(`/editor/${roomId.trim()}`, {
-      state: { username: username.trim() },
-    });
+    if (isJoining) return;
+
+    setIsJoining(true);
+
+    try {
+      // Authenticated users use their existing JWT.
+      const authToken = localStorage.getItem('codeunity_token');
+
+      // Guests reuse their saved guest JWT or request a new one.
+      if (!authToken || !isTokenValid(authToken)) {
+        if (authToken && !isTokenValid(authToken)) {
+          localStorage.removeItem('codeunity_token');
+        }
+
+        await getGuestToken();
+      }
+
+      navigate(`/editor/${roomId.trim()}`, {
+        state: {
+          username: username.trim(),
+        },
+      });
+
+    } catch (error) {
+      console.error('[GUEST IDENTITY ERROR]:', error);
+      alert('Unable to join room. Please try again.');
+    } finally {
+      setIsJoining(false);
+    }
   };
 
   return (
@@ -261,6 +336,7 @@ const LandingPage = () => {
           setUsername={setUsername}
           onCreateRoom={createRoom}
           onJoinRoom={joinRoom}
+          isJoining={isJoining}
         />
 
         {/* Additional Sections */}
