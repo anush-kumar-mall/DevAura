@@ -225,6 +225,38 @@ const authenticateToken = async (req, res, next) => {
   }
 };
 
+
+// Create a persistent guest identity
+router.post('/guest-token', authLimiter, (req, res) => {
+  try {
+    const guestId = crypto.randomUUID();
+
+    const token = jwt.sign(
+      {
+        type: 'guest',
+        guestId,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: '90d' }
+    );
+
+    return res.status(201).json({
+      success: true,
+      guestId,
+      token,
+    });
+
+  } catch (error) {
+    console.error('[GUEST AUTH ERROR]:', error);
+
+    return res.status(500).json({
+      success: false,
+      message: 'Unable to create guest identity',
+    });
+  }
+});
+
+
 // Sign up route with rate limiting
 router.post('/signup', authLimiter, async (req, res) => {
   try {

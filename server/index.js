@@ -250,23 +250,37 @@ io.use(async (socket, next) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    if (!decoded.userId) {
-      return next(new Error('Invalid authentication token'));
-    }
+// Guest identity
+if (decoded.type === 'guest' && decoded.guestId) {
+  socket.data.identity = {
+    type: 'guest',
+    userId: null,
+    guestId: decoded.guestId,
+    username: null,
+  };
 
-    const user = await User.findById(decoded.userId).select('_id username');
+  return next();
+}
 
-    if (!user) {
-      return next(new Error('User not found'));
-    }
+// Authenticated user identity
+if (decoded.userId) {
+  const user = await User.findById(decoded.userId).select('_id username');
 
-    socket.data.identity = {
-      type: 'user',
-      userId: user._id.toString(),
-      username: user.username,
-    };
+  if (!user) {
+    return next(new Error('User not found'));
+  }
 
-    next();
+  socket.data.identity = {
+    type: 'user',
+    userId: user._id.toString(),
+    guestId: null,
+    username: user.username,
+  };
+
+  return next();
+}
+
+return next(new Error('Invalid authentication token'));
   } catch (error) {
     console.error('[SOCKET AUTH ERROR]:', error.message);
     next(new Error('Authentication failed'));
@@ -297,6 +311,7 @@ const isTldrawConnection = typeof data === 'object'
 
 // Attach verified identity to this socket
 socket.userId = identity?.userId || null;
+socket.guestId = identity?.guestId || null;
 socket.identityType = identity?.type || 'guest';
     
     console.log(`[INFO] Join room: ${roomId} by ${username} (${socket.id}) ${isTldrawConnection ? '[TlDraw]' : '[Main]'}`);
